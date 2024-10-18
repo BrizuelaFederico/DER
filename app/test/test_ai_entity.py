@@ -2,46 +2,56 @@ from os import path
 
 import cv2
 
-from ..src.AI.entity.ai_entity import get_entity_boxes
+from app.src.AI.ai_utils import is_prediction
+
+from ..src.AI.entity.ai_entity import get_entities
 
 TEST_FOLDER = path.dirname(path.abspath(__file__))
 EXAMPLE_1_JPG_PATH = path.join(TEST_FOLDER, "img", "example_1.jpg")
 EXAMPLE_2_JPG_PATH = path.join(TEST_FOLDER, "img", "example_2.jpg")
 
 
-def is_midpont_inside_box(midpoint, box):
-    midpoint_y = midpoint[0]
-    midpoint_x = midpoint[1]
-    box_xmin = box[1]
-    box_xmax = box[3]
-    box_ymin = box[0]
-    box_ymax = box[2]
-    return box_xmin < midpoint_x < box_xmax and box_ymin < midpoint_y < box_ymax
-
-
 def test_example1():
     img = cv2.imread(EXAMPLE_1_JPG_PATH)
-    boxes = get_entity_boxes(img)
-    midpoint_1 = [270, 100]
-    midpoint_2 = [270, 400]
-    midpoint_3 = [50, 400]
-    midpoint_4 = [50, 100]
-    not_midpoint = [170, 250]
-    assert len(boxes) == 4
-    assert any(is_midpont_inside_box(midpoint_1, box) for box in boxes)
-    assert any(is_midpont_inside_box(midpoint_2, box) for box in boxes)
-    assert any(is_midpont_inside_box(midpoint_3, box) for box in boxes)
-    assert any(is_midpont_inside_box(midpoint_4, box) for box in boxes)
-    assert not any(is_midpont_inside_box(not_midpoint, box) for box in boxes)
+    entities = get_entities(img)
+    entity_1 = {"class": "ENTITY", "midpoint": {"x": 100, "y": 270}}
+    entity_2 = {"class": "ENTITY", "midpoint": {"x": 400, "y": 270}}
+    entity_3 = {"class": "ENTITY", "midpoint": {"x": 400, "y": 50}}
+    entity_4 = {"class": "ENTITY", "midpoint": {"x": 100, "y": 50}}
+    not_entity = {"class": "ENTITY", "midpoint": {"x": 250, "y": 170}}
+
+    assert len(entities) == 4
+    assert any(
+        is_prediction(entity_1, predicted_entity) for predicted_entity in entities
+    )
+    assert any(
+        is_prediction(entity_2, predicted_entity) for predicted_entity in entities
+    )
+    assert any(
+        is_prediction(entity_3, predicted_entity) for predicted_entity in entities
+    )
+    assert any(
+        is_prediction(entity_4, predicted_entity) for predicted_entity in entities
+    )
+    assert not any(
+        is_prediction(not_entity, predicted_entity) for predicted_entity in entities
+    )
 
 
 def test_example2():
     img = cv2.imread(EXAMPLE_2_JPG_PATH)
-    boxes = get_entity_boxes(img)
-    midpoint_1 = [130, 1890]
-    midpoint_2 = [1280, 170]
-    not_midpoint = [500, 500]
-    assert len(boxes) == 2
-    assert any(is_midpont_inside_box(midpoint_1, box) for box in boxes)
-    assert any(is_midpont_inside_box(midpoint_2, box) for box in boxes)
-    assert not any(is_midpont_inside_box(not_midpoint, box) for box in boxes)
+    entities = get_entities(img)
+    entity_1 = {"class": "ENTITY", "midpoint": {"x": 1890, "y": 130}}
+    entity_2 = {"class": "ENTITY", "midpoint": {"x": 170, "y": 1280}}
+    not_entity = {"class": "ENTITY", "midpoint": {"x": 500, "y": 500}}
+
+    assert len(entities) == 2
+    assert any(
+        is_prediction(entity_1, predicted_entity) for predicted_entity in entities
+    )
+    assert any(
+        is_prediction(entity_2, predicted_entity) for predicted_entity in entities
+    )
+    assert not any(
+        is_prediction(not_entity, predicted_entity) for predicted_entity in entities
+    )
