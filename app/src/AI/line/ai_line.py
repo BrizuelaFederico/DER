@@ -8,10 +8,10 @@ LINE_CLASSES = [
     "CROSSING",
     "HORIZONTAL",
     "BOTTOM-LEFT",
-    "UP-LEFT",
+    "TOP-LEFT",
     "NONE",
     "BOTTOM-RIGHT",
-    "UP-RIGHT",
+    "TOP-RIGHT",
     "VERTICAL",
 ]
 

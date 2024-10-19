@@ -11,8 +11,8 @@ BOTTOM_RIGHT_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "bottom-right.jpg
 CROSSING_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "crossing.jpg")
 HORIZONTAL_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "horizontal.jpg")
 NONE_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "none.jpg")
-UP_LEFT_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "up-left.jpg")
-UP_RIGHT_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "up-right.jpg")
+TOP_LEFT_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "top-left.jpg")
+TOP_RIGHT_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "top-right.jpg")
 VERTICAL_JPG_PATH = path.join(TEST_FOLDER, "img", "lines", "vertical.jpg")
 
 
@@ -46,16 +46,16 @@ def test_none():
     assert line_class == "NONE"
 
 
-def test_up_left():
-    img = cv2.imread(UP_LEFT_JPG_PATH)
+def test_top_left():
+    img = cv2.imread(TOP_LEFT_JPG_PATH)
     line_class = recognize_line(img)
-    assert line_class == "UP-LEFT"
+    assert line_class == "TOP-LEFT"
 
 
-def test_up_right():
-    img = cv2.imread(UP_RIGHT_JPG_PATH)
+def test_top_right():
+    img = cv2.imread(TOP_RIGHT_JPG_PATH)
     line_class = recognize_line(img)
-    assert line_class == "UP-RIGHT"
+    assert line_class == "TOP-RIGHT"
 
 
 def test_vertical():

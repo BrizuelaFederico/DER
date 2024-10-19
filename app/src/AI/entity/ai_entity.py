@@ -1,6 +1,5 @@
 from os import path
 
-import numpy as np
 import onnxruntime as rt
 
 from app.src.AI.ai_utils import get_detections
