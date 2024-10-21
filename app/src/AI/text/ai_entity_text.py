@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from app.src.AI.text.text_detection import detect_text
-from app.src.AI.text.text_recognition import recognize_text
+from .text_detection import detect_text
+from .text_recognition import recognize_text
 
 
 def get_entity_text(img):

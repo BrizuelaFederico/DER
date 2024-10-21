@@ -49,13 +49,28 @@ def get_region(box, img_array):
 
 
 def is_prediction(expected, predicted):
-    return expected["class"] == predicted["class"] and is_midpont_inside_box(
+    return expected["class"] == predicted["class"] and is_midpoint_inside_box(
         expected["midpoint"], predicted["box"]
     )
 
 
-def is_midpont_inside_box(midpoint, box):
+def is_midpoint_inside_box(midpoint, box):
     return (
         box["xmin"] < midpoint["x"] < box["xmax"]
         and box["ymin"] < midpoint["y"] < box["ymax"]
     )
+
+
+def expand_box(box, width, height):
+    x_axis_displacement = int((box["xmax"] - box["xmin"]) / 2)
+    y_axis_displacement = int((box["ymax"] - box["ymin"]) / 2)
+    return {
+        "xmin": max(0, box["xmin"] - x_axis_displacement),
+        "xmax": min(width, box["xmax"] + x_axis_displacement),
+        "ymin": max(0, box["ymin"] - y_axis_displacement),
+        "ymax": min(height, box["ymax"] + y_axis_displacement),
+    }
+
+
+def crop_image(box, img):
+    return img[box["ymin"] : box["ymax"], box["xmin"] : box["xmax"]]

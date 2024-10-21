@@ -2,7 +2,7 @@ from os import path
 
 import onnxruntime as rt
 
-from app.src.AI.ai_utils import get_detections
+from ..ai_utils import get_detections
 
 RELATIONSHIP_FOLDER = path.dirname(path.abspath(__file__))
 MODEL_PATH = path.join(RELATIONSHIP_FOLDER, "relationship_model.onnx")
