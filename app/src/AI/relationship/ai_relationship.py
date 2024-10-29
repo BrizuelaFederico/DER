@@ -8,7 +8,7 @@ RELATIONSHIP_FOLDER = path.dirname(path.abspath(__file__))
 MODEL_PATH = path.join(RELATIONSHIP_FOLDER, "relationship_model.onnx")
 PROVIDERS = ["CPUExecutionProvider"]
 OUTPUTS = ["num_detections", "detection_boxes", "detection_scores", "detection_classes"]
-MIN_SCORE = 0.5
+MIN_SCORE = 0.7
 sess = rt.InferenceSession(MODEL_PATH, providers=PROVIDERS)
 RELATIONSHIP_CLASSES = [
     "1M",

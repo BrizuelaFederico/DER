@@ -8,7 +8,7 @@ ENTITY_FOLDER = path.dirname(path.abspath(__file__))
 MODEL_PATH = path.join(ENTITY_FOLDER, "entity_model.onnx")
 PROVIDERS = ["CPUExecutionProvider"]
 OUTPUTS = ["num_detections", "detection_boxes", "detection_scores", "detection_classes"]
-MIN_SCORE = 0.8
+MIN_SCORE = 0.95
 sess = rt.InferenceSession(MODEL_PATH, providers=PROVIDERS)
 ENTITY_CLASSES = [
     "ENTITY",
