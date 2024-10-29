@@ -2,16 +2,23 @@ import base64
 
 import cv2
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from .ERmodel import get_ERmodel
 
 app = FastAPI()
+templates = Jinja2Templates(directory="src/templates")
 
 
 class ERmodelBody(BaseModel):
     img: str
+
+
+@app.get("/")
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.post("/der")

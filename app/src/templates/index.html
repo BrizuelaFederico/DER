@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DER</title>
+    <style>
+        body{
+            min-width: min-content;
+        }
+
+        article{
+            margin-top: 1em;
+        }
+
+        h3{
+            margin-top: 4em;
+            text-decoration: underline #0e2446;
+            text-decoration-thickness: 0.2em;
+        }
+
+        pre{
+            padding: 3em;
+            border: .2em solid #696767;
+        }
+
+        .drop-zone{
+            color: #696767;
+            border: .4em dashed #696767;
+            padding: 2em;
+            user-select: none;
+            cursor: pointer;
+            transition: border-color 500ms, color 500ms, background-color 500ms;
+
+            min-width: 90dvw;
+            min-height: 50dvh;
+            max-width: min-content;
+            max-height: min-content;
+            display: flex;
+            justify-content: center;
+
+            &:hover{
+                border-color: #000000;
+                color:#000000;
+                background-color: #f5f1f1;
+            }
+
+            p{
+                font-size: 2.5em;
+                text-align: center;
+            }
+        }
+
+        .button {
+            display: none;
+            font-size: 1em;
+            justify-content: center;
+            color: #fff;
+            border-style: none;
+            padding: .4em .3em;
+            border-radius: .2em;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background-color 250ms, transform 150ms;
+            margin: 1em;
+            background-color: #1c3a68;
+
+            &:hover {
+                background-color: #2f7ac0;
+            }
+            &:active {
+                transform: translate(0px, 3px);
+            }    
+        }
+
+        img{
+            width: min-content;
+        }
+
+        .flex-row{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .flex-column{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .element-margin{
+            margin: 2em 0em;
+        }
+
+        .loader {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3em;
+
+            svg{
+                height: 2rem;
+                width: 2rem;
+                animation: spin 1s linear infinite;
+                stroke: rgb(79, 82, 90);
+            }
+
+            span{
+                font-size: 2rem;
+                line-height: 1rem;
+                font-weight: 500;
+                color: rgb(75, 79, 88);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error{
+            color: #fa0303;
+            font-size: 4em;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body class="flex-column">
+    <aside class="flex-column">
+        <h1>Escanear imagen Diagrama Entidad-Relación</h1>
+    
+        <div id="dropZone" class="drop-zone" onclick="document.querySelector('input').dispatchEvent(new MouseEvent('click'))" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+            <img>
+            <input id="inputFile" type="file" accept=".jpg" hidden />
+            <p>Arrastre imagen .jpg o haga click ...</p>
+        </div>
+        <button class="button sky-blue-button" onclick="scan()">
+            Escanear
+        </button>
+    </aside>
+
+    <article>
+    </article>
+
+    <template id="resultTemplate">
+        <h2>Resultado:</h2>
+
+        <h3>Entidades y Tipos de Relaciones encontradas:</h3>
+        <canvas></canvas>
+        <ul class="flex-column">
+            <li>Entidades: <b id="entityCounter"></b></li>
+            <li>Relaciones 1M: <b id="rel1MCounter"></b></li>
+            <li>Relaciones 0M: <b id="rel0MCounter"></b></li>
+            <li>Relaciones 11: <b id="rel11Counter"></b></li>
+            <li>Relaciones 01: <b id="rel01Counter"></b></li>
+        </ul>
+
+        <h3>Nombre y atributos de las Entidades</h3>
+        <div id="nameAndAttributes" class="flex-column"></div>
+
+        <h3>Relaciones entre Entidades</h3>
+        <div id="relationshipsBetweenEntities" class="flex-column"></div>
+
+        <h3>JSON:</h3>
+        <pre id="jsonResponse"></pre>
+    </template>
+
+    <template id="nameAndAttributesTemplate">
+        <div class="flex-row element-margin">
+            <canvas></canvas>
+            <ul>
+                <li>Nombre Entidad: <b id="entityName"></b></li>
+                <li>Atributos:</li>
+                <ul id="attributesName">
+                </ul>
+            </ul>
+        </div>
+    </template>
+
+    <template id="relationshipsBetweenEntitiesTemplate">
+        <div class="flex-row">
+            <p>Cantidad de relaciones entre entidades encontradas: <b id="relationshipsBetweenEntitiesCounter"></b></p>
+        </div>
+    </template>
+
+    <template id="loadingTemplate">
+        <div aria-label="Loading..." role="status" class="loader">
+            <svg viewBox="0 0 256 256">
+              <line x1="128" y1="32" x2="128" y2="64" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="195.9" y1="60.1" x2="173.3" y2="82.7" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="224" y1="128" x2="192" y2="128" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="195.9" y1="195.9" x2="173.3" y2="173.3" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="128" y1="224" x2="128" y2="192" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="60.1" y1="195.9" x2="82.7" y2="173.3" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="32" y1="128" x2="64" y2="128" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+              <line x1="60.1" y1="60.1" x2="82.7" y2="82.7" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"></line>
+            </svg>
+            <span>Analizando...</span>
+        </div>
+    </template>
+
+    <template id="errorTemplate">
+        <p class="error">Hubo un error al analizar la imagen</p>
+    </template>
+
+    <script>
+        const $inputFile = document.querySelector("input");
+        const $img = document.querySelector("img");
+        const $article = document.querySelector("article");
+        const ENTITY_COLOR = '#e2f10b65';
+        const RELATIONSHIP_11_COLOR = '#c908089a';
+        const RELATIONSHIP_1M_COLOR = '#0acf35ab';
+        const RELATIONSHIP_01_COLOR = '#1fb4daa1';
+        const RELATIONSHIP_0M_COLOR = '#ac16d1af';
+        const RELATIONSHIP_COLOR = "#cf5706a1";
+
+        $inputFile.addEventListener("change", () => {
+        if ($inputFile.files[0]) loadFile($inputFile.files[0]);
+        });
+
+        function handleDragOver(event) {
+            event.preventDefault();
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            if(file.type == "image/jpeg"){
+                loadFile(file);
+            }else{
+                alert("Por favor ingresar imagen en formato .jpg");
+            }
+        }
+
+        function loadFile(file) {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.addEventListener("load", (event) => {
+                const fileimg = event.currentTarget.result;
+                $img.src = fileimg;
+
+                document.querySelector("#dropZone p").textContent = "";
+                document.querySelector("button").style.display = "flex";
+            });
+        }
+
+
+        async function scan(){
+            showLoading();
+            fetch("/der",
+                {
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                    },
+                    method: "POST",
+                    body: JSON.stringify({"img": $img.src})
+                })
+                .then(response => response.json()).then(data => showResult(data))
+                .catch(error => showError())    
+        }
+
+        function showLoading(){
+            emptyElement($article);
+            const $section = document.createElement('section');
+            const $template = document.getElementById('loadingTemplate');
+            $section.append($template.content.cloneNode(true));
+            $article.appendChild($section);
+        }
+
+        function showResult(result){
+            emptyElement($article);
+
+            const $section = document.createElement('section');
+            const $template = document.getElementById('resultTemplate');
+            $section.append($template.content.cloneNode(true));
+
+            drawCanvasOverallResult($section, result['entities']);
+            drawNameAndAttributes($section, result['entities']);
+            drawRelationshipsBetweenEntities($section, result);
+            $section.querySelector('#jsonResponse').textContent = JSON.stringify(result, null, 3);;
+
+            $article.appendChild($section);
+        }
+
+        function emptyElement($element){
+            while ($element.firstChild) {
+                $element.removeChild($element.firstChild);
+            }
+        }
+
+        function drawCanvasOverallResult($section, entities){
+            const $canvas = $section.querySelector('canvas');
+            $canvas.width = $img.width;
+            $canvas.height = $img.height;
+            const canvasContext = $canvas.getContext('2d');
+            canvasContext.drawImage($img, 0, 0);
+
+            let entityCounter = 0;
+            let rel11Counter = 0;
+            let rel1MCounter = 0;
+            let rel01Counter = 0;
+            let rel0MCounter = 0;
+
+            let relationshipColor = null;
+
+            for(entity of entities){
+                entityCounter++;
+                drawRectangle(canvasContext, ENTITY_COLOR, entity['box']);
+                for(relationship of entity['relationships']){
+
+                    switch(relationship['class']){
+                        case '11':
+                            rel11Counter++;
+                            relationshipColor = RELATIONSHIP_11_COLOR;
+                            break;
+                        case '1M':
+                            rel1MCounter++;
+                            relationshipColor = RELATIONSHIP_1M_COLOR;
+                            break;
+                        case '0M':
+                            rel0MCounter++;
+                            relationshipColor = RELATIONSHIP_0M_COLOR;
+                            break;
+                        case '01':
+                            rel01Counter++;
+                            relationshipColor = RELATIONSHIP_01_COLOR;
+                            break;
+                    }
+
+                    drawRectangle(canvasContext, relationshipColor, relationship['box']);
+
+                }
+            }
+
+            $section.querySelector('#entityCounter').innerHTML = entityCounter;
+            $section.querySelector('#rel11Counter').innerHTML = rel11Counter;
+            $section.querySelector('#rel1MCounter').innerHTML = rel1MCounter;
+            $section.querySelector('#rel01Counter').innerHTML = rel01Counter;
+            $section.querySelector('#rel0MCounter').innerHTML = rel0MCounter;
+        }
+
+        function drawRectangle(canvasContext, color, box){
+            canvasContext.fillStyle = color;
+            canvasContext.fillRect(box['xmin'], box['ymin'], box['xmax']-box['xmin'], box['ymax']-box['ymin']);
+        }
+
+        function drawNameAndAttributes($section, entities){
+            const $nameAndAttributes = $section.querySelector('#nameAndAttributes');
+            const $template = document.getElementById('nameAndAttributesTemplate');
+            let $div = null;
+            let $canvas = null;
+            let $attributesName = null;
+            let $li = null
+
+            for(entity of entities){
+                $div = document.createElement('div');
+                $div.append($template.content.cloneNode(true));
+                
+                $canvas = $div.querySelector('canvas')
+                drawEntity($canvas, entity['box'])
+
+                $div.querySelector('#entityName').textContent = entity['name'];
+
+                $attributesName = $div.querySelector('#attributesName')
+                for(attribute of entity['attributes']){
+                    $li = document.createElement('li');
+                    $li.textContent = attribute
+                    $attributesName.appendChild($li);
+                }
+
+                $nameAndAttributes.appendChild($div);
+            }
+        }
+
+        function drawEntity($canvas, box){
+            const width = box['xmax']-box['xmin'];
+            const height = box['ymax']-box['ymin'];
+            $canvas.width = width;
+            $canvas.height = height;
+            const canvasContext = $canvas.getContext('2d');
+            canvasContext.drawImage($img, box['xmin'], box['ymin'], width, height, 0, 0, width, height);
+        }
+
+        function drawRelationshipsBetweenEntities($section, result){
+            const $relationshipsBetweenEntities = $section.querySelector('#relationshipsBetweenEntities');
+            const $template = document.getElementById('relationshipsBetweenEntitiesTemplate');
+            $relationshipsBetweenEntities.append($template.content.cloneNode(true));
+            
+            $relationshipsBetweenEntities.querySelector('#relationshipsBetweenEntitiesCounter').innerHTML = result['connections'].length;
+
+            const entities = result['entities'];
+            let $canvas = null;
+            let canvasContext = null;
+            let entity1Box = null;
+            let entity2Box = null;
+            let relationship1Box = null;
+            let relationship2Box = null;
+            for(connection of result['connections']){
+                $canvas = document.createElement('canvas');
+                $canvas.classList.add('element-margin');
+                $canvas.width = $img.width;
+                $canvas.height = $img.height;
+                canvasContext = $canvas.getContext('2d');
+                canvasContext.drawImage($img, 0, 0);
+                entity1Box = entities[connection['entity_1']]['box'];
+                entity2Box = entities[connection['entity_2']]['box'];
+                relationship1Box = entities[connection['entity_1']]['relationships'][connection['relationship_1']]['box'];
+                relationship2Box = entities[connection['entity_2']]['relationships'][connection['relationship_2']]['box'];
+                drawRectangle(canvasContext, ENTITY_COLOR, entity1Box );
+                drawRectangle(canvasContext, ENTITY_COLOR, entity2Box);
+                drawRectangle(canvasContext, RELATIONSHIP_COLOR, relationship1Box);
+                drawRectangle(canvasContext, RELATIONSHIP_COLOR, relationship2Box);
+
+                $relationshipsBetweenEntities.appendChild($canvas)
+            }
+        }
+
+        function showError(){
+            emptyElement($article);
+            const $section = document.createElement('section');
+            const $template = document.getElementById('errorTemplate');
+            $section.append($template.content.cloneNode(true));
+            $article.appendChild($section);
+        }           
+    </script>
+</body>
+</html>
